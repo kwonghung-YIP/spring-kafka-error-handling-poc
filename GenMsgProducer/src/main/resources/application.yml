@@ -17,6 +17,13 @@ spring:
   config:
     activate:
       on-profile:
+        - docker-compose
+
+---
+spring:
+  config:
+    activate:
+      on-profile:
         - confluent-cloud
   kafka:
     properties:

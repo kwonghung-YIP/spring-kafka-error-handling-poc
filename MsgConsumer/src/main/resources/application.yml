@@ -33,6 +33,17 @@ spring:
   config:
     activate:
       on-profile:
+        - docker-compose
+api:
+  host: api
+  port: 8080
+  fail-rate: 50
+
+---
+spring:
+  config:
+    activate:
+      on-profile:
         - confluent-cloud
   kafka:
     properties:
