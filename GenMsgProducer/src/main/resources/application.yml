@@ -1,0 +1,25 @@
+spring:
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.LongSerializer
+
+---
+spring:
+  config:
+    activate:
+      on-profile:
+        - confluent-cloud
+  kafka:
+    properties:
+      # Required connection configs for Kafka producer, consumer, and admin
+      bootstrap.servers: pkc-lzvrd.us-west4.gcp.confluent.cloud:9092
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username='5OSXNT6LJ52Y3NER' password='O8EQW4kt9B5ljHqk5kgRX8OzxNKovbzkwgxSYibP74Zd3awTr1LGStkCMukA8P+U';
+      # Best practice for higher availability in Apache Kafka clients prior to 3.0
+      session.timeout.ms: 45000
+      # Required connection configs for Confluent Cloud Schema Registry
+      basic.auth.credentials.source: USER_INFO
+      basic.auth.user.info: "{{ SR_API_KEY }}:{{ SR_API_SECRET }}"
+      schema.registry.url: https://psrc-30dr2.us-central1.gcp.confluent.cloud
