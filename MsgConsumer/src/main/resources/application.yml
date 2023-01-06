@@ -7,13 +7,13 @@ spring:
       group-id: local-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-      enable-auto-commit: false
-    listener:
-      ack-mode: manual_immediate
+#      enable-auto-commit: false
+#    listener:
+#      ack-mode: manual_immediate
 
 logging:
   level:
-    org.springframework.kafka: debug #trace
+    org.springframework.kafka: info
     org.springframework.util.backoff: debug
 ---
 spring:

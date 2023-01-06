@@ -12,17 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
-import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.LogIfLevelEnabled;
 import org.springframework.util.backoff.FixedBackOff;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 @Slf4j
 @SpringBootApplication
@@ -52,37 +46,24 @@ public class MsgConsumerApplication {
     }
 
     @KafkaListener(topics = "${counter-topic:counter}", containerFactory = "myListenerContainerFactory", errorHandler = "myListenerErrorHandler")
-    public void recvCounter(ConsumerRecord<String,Long> record, Acknowledgment ack) {
+    public void recvCounter(ConsumerRecord<String,Long> record) {//}, Acknowledgment ack) {
         log.info("receive [{}] from \"{}\" topic...",record.value(),record.topic());
 
-        //
-
-        AtomicBoolean callHasError = new AtomicBoolean(false);
-
-        /*
-        webclient.post()
-                .uri(builder -> {
-                    return builder//.host(apiHost).port(apiPort)
+        String result = webclient.post()
+                .uri(builder -> builder//.host(apiHost).port(apiPort)
                             .path("/create")
                             .queryParam("counter", record.value())
-                            .queryParam("failrate", 100)//failrate)
-                            .build();
-                })
+                            .queryParam("failrate", failrate)
+                            .build()
+                )
                 .accept(MediaType.TEXT_PLAIN)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnError(e -> {
-                    log.error("call API error",e);
-                    //log.error("call API error [{}:{}]",e.getStatusCode(),e.getStatusText());
-                    throw new RuntimeException("fall back!");
-                })
                 //.log()
-                .subscribe(s -> {
-                    log.info("call API success [{}]",s);
-                    ack.acknowledge();
-                });
-         */
-        throw new RuntimeException("fall back2!");
+                .block();
+
+        log.info("call API success [{}]",result);
+        //ack.acknowledge();
     }
 }
 
@@ -93,7 +74,7 @@ class FactoryConfig {
     @Bean
     public KafkaListenerErrorHandler myListenerErrorHandler() {
         return (msg,ex) -> {
-            log.error("Here");
+            log.error("Exception \"{}\" captured by Listener Error Handler while processing message :{}",ex.getCause(),ex.getMessage());
             throw ex;
         };
     }
@@ -104,9 +85,9 @@ class FactoryConfig {
     ) {
         ConcurrentKafkaListenerContainerFactory<String,Long> factory = new ConcurrentKafkaListenerContainerFactory();
         factory.setConsumerFactory(consumerFactory);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-        factory.getContainerProperties().setClientId("haha-hehe-1");
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 5L)));
+        //factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.getContainerProperties().setCommitLogLevel(LogIfLevelEnabled.Level.DEBUG);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(500L, 5L)));
         return factory;
     }
 }

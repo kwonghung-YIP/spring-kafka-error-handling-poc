@@ -3,6 +3,14 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.LongSerializer
+---
+spring:
+  config:
+    activate:
+      on-profile:
+        - ide
+
+message-interval: 12000
 
 ---
 spring:
