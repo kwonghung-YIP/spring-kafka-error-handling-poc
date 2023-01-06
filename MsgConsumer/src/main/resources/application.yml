@@ -3,6 +3,8 @@ spring:
     web-application-type: none
 
   kafka:
+    producer:
+      value-serializer: org.apache.kafka.common.serialization.LongSerializer
     consumer:
       group-id: local-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

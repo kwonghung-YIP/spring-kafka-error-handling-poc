@@ -10,7 +10,7 @@ spring:
       on-profile:
         - ide
 
-message-interval: 12000
+message-interval: 900
 
 ---
 spring:

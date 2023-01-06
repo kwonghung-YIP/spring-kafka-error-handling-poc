@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import poc.kafka.pojo.Counter;
 import reactor.core.publisher.Flux;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +16,8 @@ import java.util.Map;
 @RequestMapping("/api")
 public class DBRestController {
 
-    private JdbcTemplate jdbcTemplate;
-    private SimpleJdbcInsert jdbcInsert;
+    private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert jdbcInsert;
 
     public DBRestController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -33,8 +32,10 @@ public class DBRestController {
             @RequestParam(defaultValue = "50") int failrate) {
         if (Math.random()*100>failrate) {
             jdbcInsert.execute(Map.of("counter",counter));
+            log.info("counter [{}] saved into DB successfully", counter);
             return ResponseEntity.ok().body("record saved!");
         } else {
+            log.error("counter [{}] failed to save into DB, 502 return to client", counter);
             return ResponseEntity.internalServerError().body("failed");
         }
     }

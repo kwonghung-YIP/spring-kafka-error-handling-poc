@@ -2,6 +2,7 @@ package poc.kafka;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -10,11 +11,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.kafka.retrytopic.FixedDelayStrategy;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.LogIfLevelEnabled;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.util.backoff.FixedBackOff;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -45,8 +53,9 @@ public class MsgConsumerApplication {
                 .build();
     }
 
-    @KafkaListener(topics = "${counter-topic:counter}", containerFactory = "myListenerContainerFactory", errorHandler = "myListenerErrorHandler")
-    public void recvCounter(ConsumerRecord<String,Long> record) {//}, Acknowledgment ack) {
+    @RetryableTopic(attempts = "3",  backoff = @Backoff(delay = 1500L), fixedDelayTopicStrategy = FixedDelayStrategy.SINGLE_TOPIC, dltStrategy = DltStrategy.FAIL_ON_ERROR)
+    @KafkaListener(topics = "${counter-topic:counter}", errorHandler = "myListenerErrorHandler") //, containerFactory = "myListenerContainerFactory")
+    public void recvCounter(ConsumerRecord<String,Long> record) {
         log.info("receive [{}] from \"{}\" topic...",record.value(),record.topic());
 
         String result = webclient.post()
@@ -79,7 +88,7 @@ class FactoryConfig {
         };
     }
 
-    @Bean
+    //@Bean
     public ConcurrentKafkaListenerContainerFactory<String,Long> myListenerContainerFactory(
             ConsumerFactory consumerFactory
     ) {
@@ -87,7 +96,8 @@ class FactoryConfig {
         factory.setConsumerFactory(consumerFactory);
         //factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.getContainerProperties().setCommitLogLevel(LogIfLevelEnabled.Level.DEBUG);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(500L, 5L)));
+        factory.setCommonErrorHandler(
+                new DefaultErrorHandler(new FixedBackOff(500L, 5L)));
         return factory;
     }
 }
