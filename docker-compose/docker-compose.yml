@@ -38,6 +38,15 @@ services:
       SPRING_PROFILES_ACTIVE: docker-compose
       SPRING_KAFKA_PROPERTIES_BOOTSTRAP_SERVERS: "broker:9092"
 
+  deadletter:
+    image: kafka-demo/deadletter-consumer:latest
+    container_name: deadletter
+    depends_on:
+      - broker
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-compose
+      SPRING_KAFKA_PROPERTIES_BOOTSTRAP_SERVERS: "broker:9092"
+
   producer:
     image: kafka-demo/gen-msg-producer:latest
     depends_on:
