@@ -47,7 +47,7 @@ public class MsgConsumerApplication {
 
     @PostConstruct
     public void postConstruct() {
-        //log.info(String.format("http://%s:%s/api",apiHost,apiPort));
+        log.info(String.format("http://%s:%s/api",apiHost,apiPort));
         this.webclient = WebClient.builder()
                 .baseUrl(String.format("http://%s:%s/api",apiHost,apiPort))
                 .build();

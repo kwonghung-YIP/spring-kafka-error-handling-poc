@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-api-service
+spec:
+  type: ClusterIP
+  selector:
+    app: counter-api
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter-api-deployment
+spec:
+  selector:
+    matchLabels:
+      app: counter-api
+  template:
+    metadata:
+      labels:
+        app: counter-api
+    spec:
+      containers:
+      - name: counter-api
+        image: localhost:32000/kafka-demo/counter-api
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: microk8s

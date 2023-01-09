@@ -1,0 +1,28 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+profiles:
+  - name: microk8s
+    build:
+      artifacts:
+        - image: localhost:32000/kafka-demo/counter-api
+          context: CounterAPI
+          jib:
+            type: maven
+        - image: localhost:32000/kafka-demo/msg-producer
+          context: GenMsgProducer
+          jib:
+            type: maven
+        - image: localhost:32000/kafka-demo/msg-consumer
+          context: MsgConsumer
+          jib:
+            type: maven
+        - image: localhost:32000/kafka-demo/deadletter-consumer
+          context: DeadLetterConsumer
+          jib:
+            type: maven
+      insecureRegistries: ["localhost:32000"]
+    deploy:
+      kubectl:
+        manifests: [
+          "k8s/microk8s/*.yaml"
+        ]
