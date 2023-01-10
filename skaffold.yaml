@@ -26,3 +26,8 @@ profiles:
         manifests: [
           "k8s/microk8s/*.yaml"
         ]
+    portForward:
+      - resourceType: service
+        resourceName: counter-api-service
+        port: 8080
+        localPort: 8080

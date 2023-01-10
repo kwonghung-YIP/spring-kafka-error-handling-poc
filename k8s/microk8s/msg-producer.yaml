@@ -27,4 +27,4 @@ spec:
           - name: SPRING_KAFKA_PROPERTIES_BOOTSTRAP_SERVERS
             value: broker-service:9092
           - name: MESSAGE_INTERVAL
-            value: "9000"
+            value: "500"
